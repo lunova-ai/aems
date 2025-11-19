@@ -80,8 +80,11 @@ export default function AnalysisPage() {
           />
         )}
 
-        {/* MODAL */}
-        <AEMSScreenshotModal visible={modalVisible} />
+        {/* MODAL — FIXED: onClose hinzugefügt */}
+        <AEMSScreenshotModal
+          visible={modalVisible}
+          onClose={() => setModalVisible(false)}
+        />
 
         {/* EXPORTIERBARE ANALYSE */}
         <AEMSScreenshotWrapper ref={analysisRef}>
