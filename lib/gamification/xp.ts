@@ -7,7 +7,8 @@ export type ActionKey =
   | "pdf_export"
   | "insight_view"
   | "simulation_run"
-  | "alert_view";
+  | "alert_view"
+  | "control_view";   // <-- FEHLENDER ACTION KEY HINZUGEFÜGT
 
 export type BadgeId =
   | "heatmap_explorer"
@@ -45,6 +46,7 @@ const XP_PER_ACTION: Record<ActionKey, number> = {
   insight_view: 10,
   simulation_run: 20,
   alert_view: 10,
+  control_view: 5,   // <-- PASSENDER XP-WERT DEFINIERT
 };
 
 /* -------------------------------------------------------
@@ -123,6 +125,7 @@ function emptyActions(): Record<ActionKey, number> {
     insight_view: 0,
     simulation_run: 0,
     alert_view: 0,
+    control_view: 0, // <-- DEFAULT-WERT HINZUGEFÜGT
   };
 }
 
@@ -185,9 +188,7 @@ export function saveGamificationState(state: GamificationState) {
   if (typeof window === "undefined") return;
   try {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  } catch {
-    // ignore storage errors (iOS private mode etc.)
-  }
+  } catch {}
 }
 
 /* -------------------------------------------------------
@@ -255,10 +256,7 @@ export function awardXp(action: ActionKey) {
     }
   }
 
-  return {
-    state: next,
-    newlyUnlocked: unlocked,
-  };
+  return { state: next, newlyUnlocked: unlocked };
 }
 
 /* -------------------------------------------------------
