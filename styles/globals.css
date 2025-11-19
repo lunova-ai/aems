@@ -38,6 +38,7 @@ h3 {
 .animate-slideDown {
   animation: slideDown 0.25s ease-out;
 }
+
 @keyframes fadeIn {
   from { opacity: 0 }
   to { opacity: 1 }
@@ -55,6 +56,7 @@ h3 {
 .animate-scaleIn {
   animation: scaleIn 0.25s ease-out;
 }
+
 /* === AEMS DESIGN TOKENS ========================================== */
 
 :root {
@@ -111,3 +113,4 @@ body.theme-light {
   padding-inline: 1.5rem;
   padding-block: 2rem 3rem;
 }
+
