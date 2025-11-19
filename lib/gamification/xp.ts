@@ -1,5 +1,8 @@
 "use client";
 
+/* -------------------------------------------------------
+ * ACTION KEYS – Vollständige Liste aller XP-Aktionen
+ * ------------------------------------------------------- */
 export type ActionKey =
   | "heatmap_view"
   | "correlation_view"
@@ -8,13 +11,44 @@ export type ActionKey =
   | "insight_view"
   | "simulation_run"
   | "alert_view"
+
+  // CONTROL
   | "control_view"
   | "control_status_open"
   | "policy_engine_open"
   | "action_effects_open"
   | "control_loop_open"
-  | "control_recommendations_open";
+  | "control_recommendations_open"
 
+  // EXECUTIVE
+  | "executive_view"
+  | "executive_insights_open"
+  | "executive_kpi_open"
+  | "resilience_open"
+  | "volatility_open"
+  | "impactscore_open"
+  | "forecast_confidence_open"
+  | "costforecast_open"
+  | "alerts_open"
+
+  // GLOSSARY
+  | "glossary_view"
+
+  // DASHBOARD
+  | "dashboard_view"
+
+  // SIMULATION
+  | "simulation_view"
+  | "montecarlo_open"
+  | "scenario_composer_open"
+  | "scenario_replay_open"
+  | "smartforecast_open"
+  | "simulation_timeline_open";
+
+
+/* -------------------------------------------------------
+ * BADGE IDs
+ * ------------------------------------------------------- */
 export type BadgeId =
   | "heatmap_explorer"
   | "correlation_reader"
@@ -26,6 +60,7 @@ export type BadgeId =
   | "aems_executive"
   | "antifragile_leader";
 
+
 export type GamificationState = {
   xp: number;
   level: number;
@@ -34,13 +69,19 @@ export type GamificationState = {
   version: number;
 };
 
+
+/* -------------------------------------------------------
+ * STORAGE
+ * ------------------------------------------------------- */
 const STORAGE_KEY = "aems_gamification_state_v1";
 const CURRENT_VERSION = 1;
 
+
 /* -------------------------------------------------------
- * XP TABLE
+ * XP VALUES
  * ------------------------------------------------------- */
-const XP_PER_ACTION: Record<ActionKey, number> = {
+export const XP_PER_ACTION: Record<ActionKey, number> = {
+  // ANALYSIS
   heatmap_view: 5,
   correlation_view: 5,
   rootcause_view: 10,
@@ -48,15 +89,41 @@ const XP_PER_ACTION: Record<ActionKey, number> = {
   insight_view: 10,
   simulation_run: 20,
   alert_view: 10,
-  control_view: 5,
 
-  // NEW XP ACTIONS
-  control_status_open: 5,
-  policy_engine_open: 5,
-  action_effects_open: 5,
-  control_loop_open: 5,
-  control_recommendations_open: 5,
+  // CONTROL
+  control_view: 5,
+  control_status_open: 2,
+  policy_engine_open: 2,
+  action_effects_open: 2,
+  control_loop_open: 2,
+  control_recommendations_open: 2,
+
+  // EXECUTIVE
+  executive_view: 5,
+  executive_insights_open: 3,
+  executive_kpi_open: 3,
+  resilience_open: 3,
+  volatility_open: 3,
+  impactscore_open: 3,
+  forecast_confidence_open: 3,
+  costforecast_open: 3,
+  alerts_open: 3,
+
+  // GLOSSARY
+  glossary_view: 3,
+
+  // DASHBOARD
+  dashboard_view: 3,
+
+  // SIMULATION
+  simulation_view: 5,
+  montecarlo_open: 5,
+  scenario_composer_open: 5,
+  scenario_replay_open: 5,
+  smartforecast_open: 5,
+  simulation_timeline_open: 5,
 };
+
 
 /* -------------------------------------------------------
  * BADGE DEFINITIONS
@@ -122,27 +189,14 @@ const BADGE_MAP = Object.fromEntries(
   BADGE_DEFINITIONS.map(b => [b.id, b])
 ) as Record<BadgeId, typeof BADGE_DEFINITIONS[number]>;
 
+
 /* -------------------------------------------------------
- * DEFAULT ACTION COUNTS
+ * DEFAULT STATE
  * ------------------------------------------------------- */
 function emptyActions(): Record<ActionKey, number> {
-  return {
-    heatmap_view: 0,
-    correlation_view: 0,
-    rootcase_view: 0,
-    pdf_export: 0,
-    insight_view: 0,
-    simulation_run: 0,
-    alert_view: 0,
-    control_view: 0,
-
-    // NEW ACTION KEYS
-    control_status_open: 0,
-    policy_engine_open: 0,
-    action_effects_open: 0,
-    control_loop_open: 0,
-    control_recommendations_open: 0,
-  };
+  return Object.fromEntries(
+    Object.keys(XP_PER_ACTION).map(k => [k, 0])
+  ) as Record<ActionKey, number>;
 }
 
 export function getDefaultState(): GamificationState {
@@ -155,8 +209,9 @@ export function getDefaultState(): GamificationState {
   };
 }
 
+
 /* -------------------------------------------------------
- * LEVEL SYSTEM
+ * LEVEL LOGIC
  * ------------------------------------------------------- */
 function computeLevel(xp: number): number {
   if (xp >= 1000) return 5;
@@ -165,6 +220,7 @@ function computeLevel(xp: number): number {
   if (xp >= 100) return 2;
   return 1;
 }
+
 
 /* -------------------------------------------------------
  * LOAD STATE
@@ -189,12 +245,13 @@ export function loadGamificationState(): GamificationState {
       unlockedBadges: Array.isArray(parsed.unlockedBadges)
         ? parsed.unlockedBadges
         : [],
-      version: CURRENT_VERSION,
+      version: CURRENT_VERSION
     };
   } catch {
     return getDefaultState();
   }
 }
+
 
 /* -------------------------------------------------------
  * SAVE STATE
@@ -206,8 +263,9 @@ export function saveGamificationState(state: GamificationState) {
   } catch {}
 }
 
+
 /* -------------------------------------------------------
- * BADGE LOGIC
+ * BADGE CHECKING
  * ------------------------------------------------------- */
 function checkBadges(next: GamificationState, prev: GamificationState): BadgeId[] {
   const newOnes: BadgeId[] = [];
@@ -235,6 +293,7 @@ function checkBadges(next: GamificationState, prev: GamificationState): BadgeId[
   return newOnes;
 }
 
+
 /* -------------------------------------------------------
  * AWARD XP
  * ------------------------------------------------------- */
@@ -253,18 +312,28 @@ export function awardXp(action: ActionKey) {
   };
 
   const unlocked = checkBadges(next, prev);
+
   saveGamificationState(next);
 
   if (typeof window !== "undefined") {
-    window.dispatchEvent(new CustomEvent("aems-gamification-updated", { detail: next }));
+    window.dispatchEvent(
+      new CustomEvent("aems-gamification-updated", { detail: next })
+    );
     if (unlocked.length) {
-      window.dispatchEvent(new CustomEvent("aems-gamification-badges-unlocked", { detail: unlocked }));
+      window.dispatchEvent(
+        new CustomEvent("aems-gamification-badges-unlocked", { detail: unlocked })
+      );
     }
   }
 
   return { state: next, newlyUnlocked: unlocked };
 }
 
+
+/* -------------------------------------------------------
+ * BADGE METADATA
+ * ------------------------------------------------------- */
 export function getBadgeDefinition(id: BadgeId) {
   return BADGE_MAP[id];
 }
+
