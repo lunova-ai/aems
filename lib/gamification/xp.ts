@@ -8,7 +8,12 @@ export type ActionKey =
   | "insight_view"
   | "simulation_run"
   | "alert_view"
-  | "control_view";   // <-- FEHLENDER ACTION KEY HINZUGEFÜGT
+  | "control_view"
+  | "control_status_open"
+  | "policy_engine_open"
+  | "action_effects_open"
+  | "control_loop_open"
+  | "control_recommendations_open";
 
 export type BadgeId =
   | "heatmap_explorer"
@@ -29,14 +34,11 @@ export type GamificationState = {
   version: number;
 };
 
-/* -------------------------------------------------------
- * VERSIONING – wichtig für spätere Updates
- * ------------------------------------------------------- */
 const STORAGE_KEY = "aems_gamification_state_v1";
 const CURRENT_VERSION = 1;
 
 /* -------------------------------------------------------
- * XP Tabelle
+ * XP TABLE
  * ------------------------------------------------------- */
 const XP_PER_ACTION: Record<ActionKey, number> = {
   heatmap_view: 5,
@@ -46,11 +48,18 @@ const XP_PER_ACTION: Record<ActionKey, number> = {
   insight_view: 10,
   simulation_run: 20,
   alert_view: 10,
-  control_view: 5,   // <-- PASSENDER XP-WERT DEFINIERT
+  control_view: 5,
+
+  // NEW XP ACTIONS
+  control_status_open: 5,
+  policy_engine_open: 5,
+  action_effects_open: 5,
+  control_loop_open: 5,
+  control_recommendations_open: 5,
 };
 
 /* -------------------------------------------------------
- * BADGES
+ * BADGE DEFINITIONS
  * ------------------------------------------------------- */
 export const BADGE_DEFINITIONS = [
   {
@@ -114,18 +123,25 @@ const BADGE_MAP = Object.fromEntries(
 ) as Record<BadgeId, typeof BADGE_DEFINITIONS[number]>;
 
 /* -------------------------------------------------------
- * Default State
+ * DEFAULT ACTION COUNTS
  * ------------------------------------------------------- */
 function emptyActions(): Record<ActionKey, number> {
   return {
     heatmap_view: 0,
     correlation_view: 0,
-    rootcause_view: 0,
+    rootcase_view: 0,
     pdf_export: 0,
     insight_view: 0,
     simulation_run: 0,
     alert_view: 0,
-    control_view: 0, // <-- DEFAULT-WERT HINZUGEFÜGT
+    control_view: 0,
+
+    // NEW ACTION KEYS
+    control_status_open: 0,
+    policy_engine_open: 0,
+    action_effects_open: 0,
+    control_loop_open: 0,
+    control_recommendations_open: 0,
   };
 }
 
@@ -140,7 +156,7 @@ export function getDefaultState(): GamificationState {
 }
 
 /* -------------------------------------------------------
- * Level System
+ * LEVEL SYSTEM
  * ------------------------------------------------------- */
 function computeLevel(xp: number): number {
   if (xp >= 1000) return 5;
@@ -151,7 +167,7 @@ function computeLevel(xp: number): number {
 }
 
 /* -------------------------------------------------------
- * State Load + Validation
+ * LOAD STATE
  * ------------------------------------------------------- */
 export function loadGamificationState(): GamificationState {
   if (typeof window === "undefined") return getDefaultState();
@@ -162,7 +178,6 @@ export function loadGamificationState(): GamificationState {
 
     const parsed = JSON.parse(raw);
 
-    // Version mismatch? → Vollreset
     if (!parsed.version || parsed.version !== CURRENT_VERSION) {
       return getDefaultState();
     }
@@ -174,7 +189,7 @@ export function loadGamificationState(): GamificationState {
       unlockedBadges: Array.isArray(parsed.unlockedBadges)
         ? parsed.unlockedBadges
         : [],
-      version: CURRENT_VERSION
+      version: CURRENT_VERSION,
     };
   } catch {
     return getDefaultState();
@@ -182,7 +197,7 @@ export function loadGamificationState(): GamificationState {
 }
 
 /* -------------------------------------------------------
- * Save State
+ * SAVE STATE
  * ------------------------------------------------------- */
 export function saveGamificationState(state: GamificationState) {
   if (typeof window === "undefined") return;
@@ -192,7 +207,7 @@ export function saveGamificationState(state: GamificationState) {
 }
 
 /* -------------------------------------------------------
- * Badge Logic (robust)
+ * BADGE LOGIC
  * ------------------------------------------------------- */
 function checkBadges(next: GamificationState, prev: GamificationState): BadgeId[] {
   const newOnes: BadgeId[] = [];
@@ -200,11 +215,7 @@ function checkBadges(next: GamificationState, prev: GamificationState): BadgeId[
   const P = prev.actionCounts;
 
   const unlock = (id: BadgeId, cond: boolean) => {
-    if (
-      cond &&
-      !prev.unlockedBadges.includes(id) &&
-      !next.unlockedBadges.includes(id)
-    ) {
+    if (cond && !prev.unlockedBadges.includes(id)) {
       next.unlockedBadges.push(id);
       newOnes.push(id);
     }
@@ -225,7 +236,7 @@ function checkBadges(next: GamificationState, prev: GamificationState): BadgeId[
 }
 
 /* -------------------------------------------------------
- * Award XP (Race-Safe + Event-Safe)
+ * AWARD XP
  * ------------------------------------------------------- */
 export function awardXp(action: ActionKey) {
   const prev = loadGamificationState();
@@ -242,26 +253,18 @@ export function awardXp(action: ActionKey) {
   };
 
   const unlocked = checkBadges(next, prev);
-
   saveGamificationState(next);
 
   if (typeof window !== "undefined") {
-    window.dispatchEvent(
-      new CustomEvent("aems-gamification-updated", { detail: next })
-    );
+    window.dispatchEvent(new CustomEvent("aems-gamification-updated", { detail: next }));
     if (unlocked.length) {
-      window.dispatchEvent(
-        new CustomEvent("aems-gamification-badges-unlocked", { detail: unlocked })
-      );
+      window.dispatchEvent(new CustomEvent("aems-gamification-badges-unlocked", { detail: unlocked }));
     }
   }
 
   return { state: next, newlyUnlocked: unlocked };
 }
 
-/* -------------------------------------------------------
- * Metadata Helper
- * ------------------------------------------------------- */
 export function getBadgeDefinition(id: BadgeId) {
   return BADGE_MAP[id];
 }
