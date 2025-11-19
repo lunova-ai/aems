@@ -1,0 +1,113 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body {
+  background-color: #031f1f;
+  color: white;
+  margin: 0;
+  padding: 0;
+  font-family: system-ui, sans-serif;
+}
+
+/* Typografie Feinschliff */
+body {
+  letter-spacing: 0.2px;
+}
+
+h1,
+h2,
+h3 {
+  font-weight: 600;
+  letter-spacing: -0.3px;
+}
+
+/* Snapshot-Dropdown Animation */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slideDown {
+  animation: slideDown 0.25s ease-out;
+}
+@keyframes fadeIn {
+  from { opacity: 0 }
+  to { opacity: 1 }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95) }
+  to { opacity: 1; transform: scale(1) }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.25s ease-out;
+}
+
+.animate-scaleIn {
+  animation: scaleIn 0.25s ease-out;
+}
+/* === AEMS DESIGN TOKENS ========================================== */
+
+:root {
+  --aems-radius-lg: 18px;
+  --aems-shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.55);
+
+  --aems-color-accent: #34d399;
+  --aems-color-accent-soft: rgba(52, 211, 153, 0.12);
+
+  --aems-color-ok: #22c55e;
+  --aems-color-warning: #facc15;
+  --aems-color-critical: #f97373;
+}
+
+/* Dark Theme (Standard) */
+body.theme-dark {
+  --aems-bg: #031f1f;
+  --aems-bg-elevated: #022626;
+  --aems-bg-muted: #0b2f2f;
+
+  --aems-text: #f9fafb;
+  --aems-text-muted: #9ca3af;
+
+  background-color: var(--aems-bg);
+  color: var(--aems-text);
+}
+
+/* Light Theme */
+body.theme-light {
+  --aems-bg: #f3f4f6;
+  --aems-bg-elevated: #ffffff;
+  --aems-bg-muted: #e5e7eb;
+
+  --aems-text: #020617;
+  --aems-text-muted: #6b7280;
+
+  background-color: var(--aems-bg);
+  color: var(--aems-text);
+}
+
+/* Card-Style, wiederverwendbar via className="aems-card" */
+.aems-card {
+  border-radius: var(--aems-radius-lg);
+  background-color: var(--aems-bg-elevated);
+  box-shadow: var(--aems-shadow-soft);
+  border: 1px solid rgba(148, 163, 184, 0.24);
+}
+
+/* optional: Inhaltsbreite */
+.aems-page {
+  width: 100%;
+  max-width: 1200px;
+  margin-inline: auto;
+  padding-inline: 1.5rem;
+  padding-block: 2rem 3rem;
+}
