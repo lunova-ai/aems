@@ -11,9 +11,9 @@ export default function SnapshotDropdown({
   analysisRef,
 }: {
   onClose: () => void;
-  onMakeSnapshot: () => void;          
-  onHeatmapSnapshot?: () => void;      
-  analysisRef?: RefObject<HTMLDivElement>;   // <-- FIX HIER
+  onMakeSnapshot: () => Promise<void>;        // <-- FIX: erlaubt async
+  onHeatmapSnapshot?: () => void;
+  analysisRef?: RefObject<HTMLDivElement>;
 }) {
   return (
     <AEMSCard
@@ -23,7 +23,7 @@ export default function SnapshotDropdown({
       "
     >
       <div className="flex flex-col gap-4 text-left">
-
+        
         <p className="text-gray-200 text-sm leading-relaxed">
           Erstelle einen <strong className="text-aems-neon">Snapshot</strong> der aktuellen Analyse.
         </p>
@@ -70,7 +70,6 @@ export default function SnapshotDropdown({
         >
           schliessen
         </button>
-
       </div>
     </AEMSCard>
   );
