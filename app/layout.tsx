@@ -5,8 +5,8 @@ import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import PageTransition from "@/components/layout/PageTransition";
 
 export const metadata: Metadata = {
-  title: "AEMS Platform",
-  description: "Advanced Energy Management System",
+  title: "AEMS-System",
+  description: "Antifragile Energy Management System",
 };
 
 export default function RootLayout({
