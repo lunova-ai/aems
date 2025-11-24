@@ -6,35 +6,35 @@ import { parseWithGlossaryInline } from "@/lib/glossary/parser";
 import { awardXp } from "@/lib/gamification/xp";
 
 // ---------- TYPES ----------
-type Node = {
+type ForceNode = {
   id: string;
   value: number;
   x: number;
   y: number;
   vx: number;
   vy: number;
-  children: Node[];
+  children: ForceNode[];
 };
 
-// ---------- TREE FLATTEN ----------
-function flattenTree(root: RootCauseNode): Node[] {
-  const nodes: Node[] = [];
+// ---------- TREE → FORCE GRAPH ----------
+function flattenTree(root: RootCauseNode): ForceNode[] {
+  const nodes: ForceNode[] = [];
 
-  function walk(node: RootCauseNode, parent: Node | null) {
-    const n: Node = {
+  function walk(node: RootCauseNode, parent: ForceNode | null) {
+    const n: ForceNode = {
       id: node.name,
       value: node.value,
       x: Math.random() * 400 + 200,
       y: Math.random() * 200 + 100,
       vx: 0,
       vy: 0,
-      children: []
+      children: [],
     };
 
     nodes.push(n);
     if (parent) parent.children.push(n);
 
-    node.children.forEach((c) => walk(c, n));
+    node.children.forEach((child) => walk(child, n));
   }
 
   walk(root, null);
@@ -42,15 +42,12 @@ function flattenTree(root: RootCauseNode): Node[] {
 }
 
 export default function RootCauseForceTree() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const frameRef = useRef<number | null>(null);
 
-  // feste Node-Struktur
-  const [nodes] = useState<Node[]>(() => flattenTree(rootCauseTree));
+  const [nodes] = useState<ForceNode[]>(() => flattenTree(rootCauseTree));
+  const [hoveredNode, setHoveredNode] = useState<ForceNode | null>(null);
 
-  // aktueller Hover-Node (für Tooltip in React)
-  const [hoveredNode, setHoveredNode] = useState<Node | null>(null);
-  // ID im Canvas-Loop (damit Animations-Effect nicht bei jedem Hover neu startet)
   const hoveredIdRef = useRef<string | null>(null);
 
   // ---------- ANIMATION ----------
@@ -66,9 +63,15 @@ export default function RootCauseForceTree() {
 
     const repelForce = 0.015;
     const linkForce = 0.025;
+    const damping = 0.88;
 
-    function step() {
-      // PHYSICS — REPULSION + LINK ATTRACTION
+    if (frameRef.current !== null) {
+      cancelAnimationFrame(frameRef.current);
+      frameRef.current = null;
+    }
+
+    const step = () => {
+      // ---- PHYSICS ----
       nodes.forEach((a) => {
         nodes.forEach((b) => {
           if (a === b) return;
@@ -92,19 +95,19 @@ export default function RootCauseForceTree() {
         });
       });
 
-      // MOVE
+      // MOVEMENT
       nodes.forEach((n) => {
         n.x += n.vx;
         n.y += n.vy;
-        n.vx *= 0.88;
-        n.vy *= 0.88;
 
-        // Canvas boundaries
+        n.vx *= damping;
+        n.vy *= damping;
+
         n.x = Math.max(30, Math.min(width - 30, n.x));
         n.y = Math.max(30, Math.min(height - 30, n.y));
       });
 
-      // RENDER
+      // ---- RENDER ----
       ctx.clearRect(0, 0, width, height);
 
       // LINKS
@@ -136,64 +139,66 @@ export default function RootCauseForceTree() {
 
         ctx.fill();
 
-        // Label
         ctx.fillStyle = "white";
         ctx.font = "11px sans-serif";
         ctx.fillText(n.id, n.x + size + 4, n.y + 4);
       });
 
       frameRef.current = requestAnimationFrame(step);
-    }
+    };
 
     frameRef.current = requestAnimationFrame(step);
 
     return () => {
-      if (frameRef.current) cancelAnimationFrame(frameRef.current);
+      if (frameRef.current !== null) cancelAnimationFrame(frameRef.current);
     };
   }, [nodes]);
 
-  // ---------- HOVER ----------
+  // ---------- HOVER / TOOLTIP ----------
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    function handleMove(e: MouseEvent) {
+    const handleMove = (e: MouseEvent) => {
       const rect = canvas.getBoundingClientRect();
       const mx = e.clientX - rect.left;
       const my = e.clientY - rect.top;
 
-      let found: Node | null = null;
+      let found: ForceNode | null = null;
 
-      nodes.forEach((n) => {
+      // strict-safe search (no forEach!)
+      for (const n of nodes) {
         const size = 10 + n.value * 16;
         const dx = mx - n.x;
         const dy = my - n.y;
+
         if (dx * dx + dy * dy <= size * size) {
           found = n;
+          break;
         }
-      });
+      }
 
-      if (found) {
+      if (found !== null) {
         if (hoveredIdRef.current !== found.id) {
           hoveredIdRef.current = found.id;
           setHoveredNode(found);
           awardXp("rootcause_node_hover");
         }
-      } else if (hoveredIdRef.current) {
-        hoveredIdRef.current = null;
-        setHoveredNode(null);
+      } else {
+        if (hoveredIdRef.current !== null) {
+          hoveredIdRef.current = null;
+          setHoveredNode(null);
+        }
       }
-    }
+    };
 
     canvas.addEventListener("mousemove", handleMove);
     return () => canvas.removeEventListener("mousemove", handleMove);
   }, [nodes]);
 
-  // ---------- RENDER ----------
   return (
     <div className="relative flex justify-center">
 
-      {/* Tooltip */}
       {hoveredNode && (
         <div className="absolute -top-16 left-1/2 -translate-x-1/2 px-4 py-3 rounded-xl bg-black/80 border border-aems-neon/40 text-sm text-gray-200 backdrop-blur-md shadow-xl z-20">
           <div className="font-semibold text-aems-neon mb-1">
@@ -217,4 +222,3 @@ export default function RootCauseForceTree() {
     </div>
   );
 }
-

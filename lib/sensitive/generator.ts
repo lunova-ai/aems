@@ -31,12 +31,21 @@ export function generateSensitiveZones(data: {
    * Optional: Heatmap-Clustering (starke Wechselwirkungen)
    * ------------------------------------------------------------- */
   function detectHeatmapCluster(): string {
-    if (!data.heatmap || data.heatmap.length === 0) return "Keine Heatmap-Daten verfügbar";
+    if (!data.heatmap || data.heatmap.length === 0) {
+      return "Keine Heatmap-Daten verfügbar";
+    }
 
     let highLinks = 0;
+
     for (let i = 0; i < data.heatmap.length; i++) {
-      for (let j = i + 1; j < data.heatmap[i].length; j++) {
-        if (Math.abs(data.heatmap[i][j]) > 0.6) highLinks++;
+      const row = data.heatmap[i];
+      if (!row) continue;
+
+      for (let j = i + 1; j < row.length; j++) {
+        const value = row[j];
+        if (typeof value === "number" && Math.abs(value) > 0.6) {
+          highLinks++;
+        }
       }
     }
 
@@ -85,7 +94,7 @@ export function generateSensitiveZones(data: {
   zones.push({
     category: "Kostenstruktur",
     level: riskLabel(
-      (data.volatility * 0.7 + (1 - data.stability) * 0.3)
+      data.volatility * 0.7 + (1 - data.stability) * 0.3
     ),
     indicators: [
       data.volatility > 0.6
@@ -109,7 +118,7 @@ export function generateSensitiveZones(data: {
    * ------------------------------------------------------------- */
   zones.push({
     category: "CO₂-Profil",
-    level: riskLabel(data.co2), // HOCHES CO₂ = HOHES Risiko
+    level: riskLabel(data.co2), // HOHES CO₂ = HOHES Risiko
     indicators: [
       data.co2 < 0.3
         ? "Emissionen gut kontrolliert"
@@ -129,3 +138,4 @@ export function generateSensitiveZones(data: {
 
   return zones;
 }
+

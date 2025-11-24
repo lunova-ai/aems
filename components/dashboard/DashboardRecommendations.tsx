@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import AEMSCard from "@/components/AEMSCard";
 import AEMSSection from "@/components/AEMSSection";
 
-import { parseWithGlossary } from "@/lib/glossary/parser";
+import { parseWithGlossaryInline } from "@/lib/glossary/parser";
 import { awardXp } from "@/lib/gamification/xp";
 import { generateRecommendations } from "@/lib/recommendations/generator";
 
@@ -30,36 +30,37 @@ export default function DashboardRecommendations() {
 
         {recommendations.map((rec, i) => (
           <AEMSCard
-            key={i}
+            key={rec.title ?? i}
             className="relative overflow-visible hover:scale-[1.01] transition"
           >
             {/* Titel */}
             <h3 className="text-lg font-semibold text-white mb-2">
-              {parseWithGlossary(rec.title)}
+              {parseWithGlossaryInline(rec.title)}
             </h3>
 
             {/* Warum */}
             <p className="text-gray-300 text-sm mb-2 leading-relaxed">
-              {parseWithGlossary(`Why: ${rec.why}`)}
+              {parseWithGlossaryInline(rec.why)}
             </p>
 
             {/* Was tun */}
             <p className="text-gray-300 text-sm mb-4 leading-relaxed">
-              {parseWithGlossary(`What: ${rec.what}`)}
+              {parseWithGlossaryInline(rec.what)}
             </p>
 
             {/* Button */}
             <button
               className={`
-                w-full py-2 rounded-lg font-semibold
-                ${loadingIndex === i
-                  ? "bg-gray-400 text-black cursor-wait"
-                  : "bg-aems-neon text-black hover:bg-aems-soft transition"
+                w-full py-2 rounded-lg font-semibold transition
+                ${
+                  loadingIndex === i
+                    ? "bg-gray-400 text-black cursor-wait"
+                    : "bg-aems-neon text-black hover:bg-aems-soft"
                 }
               `}
               disabled={loadingIndex === i}
               onClick={() => {
-                awardXp(`rec_${i}`);
+                awardXp("dashboard_recommendation_click");
                 setLoadingIndex(i);
                 setTimeout(() => router.push(rec.actionHref), 200);
               }}
@@ -70,7 +71,7 @@ export default function DashboardRecommendations() {
             {/* Risiko-Info */}
             {rec.riskInfo && (
               <p className="text-gray-400 text-xs mt-4 leading-relaxed">
-                {parseWithGlossary(rec.riskInfo)}
+                {parseWithGlossaryInline(rec.riskInfo)}
               </p>
             )}
           </AEMSCard>

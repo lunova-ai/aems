@@ -3,13 +3,18 @@
 import React from "react";
 import AEMSSection from "@/components/AEMSSection";
 import AEMSCard from "@/components/AEMSCard";
-import { parseWithGlossary } from "@/lib/glossary/parser";
+
+import { parseWithGlossaryInline } from "@/lib/glossary/parser";
 import { awardXp } from "@/lib/gamification/xp";
+
 import {
   ExecutiveMetrics,
   generateExecutiveInsights,
 } from "@/lib/insights/executive";
 
+/* ---------------------------------------------------------
+ * INPUT-DATEN
+ * --------------------------------------------------------- */
 const executiveMetrics: ExecutiveMetrics = {
   resilience: 0.76,
   stability: 0.66,
@@ -22,6 +27,9 @@ const executiveMetrics: ExecutiveMetrics = {
   stressIndex: 0.61,
 };
 
+/* ---------------------------------------------------------
+ * COMPONENT
+ * --------------------------------------------------------- */
 export default function ExecutiveInsightsPanel() {
   const { summary, insights, topPriority } =
     generateExecutiveInsights(executiveMetrics);
@@ -38,71 +46,89 @@ export default function ExecutiveInsightsPanel() {
 
   return (
     <AEMSSection title="Executive Summary">
-      <AEMSCard className="space-y-4 p-5">
-        {/* Zusammenfassung */}
+      <AEMSCard className="space-y-5 p-6 overflow-visible">
+
+        {/* ---------------------------------------------------------
+         * SYSTEMISCHE ZUSAMMENFASSUNG
+         * --------------------------------------------------------- */}
         <div className="space-y-2">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs text-gray-300">
             <span className="w-2 h-2 rounded-full bg-aems-neon" />
-            <span>Systemweite Zusammenfassung (automatisch generiert)</span>
+            <span>Automatische systemweite Bewertung</span>
           </div>
-          <p className="text-sm text-gray-200">
-            {parseWithGlossary(summary)}
+
+          <p className="text-sm text-gray-200 leading-relaxed">
+            {parseWithGlossaryInline(summary)}
           </p>
         </div>
 
-        {/* Top-Priorität */}
-        <div className="mt-3">
-          <div className="text-xs text-gray-400 mb-1">Top-Priorität</div>
+        {/* ---------------------------------------------------------
+         * TOP PRIORITY INSIGHT
+         * --------------------------------------------------------- */}
+        <div>
+          <div className="text-xs text-gray-400 mb-1 uppercase tracking-wide">
+            Top-Priorität
+          </div>
+
           <div
-            className={`rounded-xl px-4 py-3 text-sm border ${
-              severityColor[topPriority.severity]
-            }`}
+            className={`rounded-xl px-4 py-3 text-sm border ${severityColor[topPriority.severity]}`}
           >
-            <div className="flex items-center justify-between gap-2 mb-1">
-              <span className="font-semibold">{topPriority.headline}</span>
+            <div className="flex items-center justify-between mb-1">
+              <span className="font-semibold text-sm">
+                {parseWithGlossaryInline(topPriority.headline)}
+              </span>
               <span className="text-[10px] uppercase tracking-wide opacity-80">
                 {topPriority.severity}
               </span>
             </div>
-            <p className="text-xs text-gray-200">
-              {parseWithGlossary(topPriority.body)}
+
+            <p className="text-xs leading-relaxed">
+              {parseWithGlossaryInline(topPriority.body)}
             </p>
           </div>
         </div>
 
-        {/* Weitere Insights */}
-        <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+        {/* ---------------------------------------------------------
+         * WEITERE INSIGHTS
+         * --------------------------------------------------------- */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
           {insights.map((ins, i) => (
             <div
               key={i}
-              className={`rounded-xl px-4 py-3 text-xs border ${
-                severityColor[ins.severity]
-              }`}
+              className={`rounded-xl px-4 py-3 text-xs border ${severityColor[ins.severity]}`}
             >
-              <div className="flex items-center justify-between gap-2 mb-1">
+              <div className="flex items-center justify-between mb-1">
                 <span className="font-semibold text-[11px]">
-                  {ins.headline}
+                  {parseWithGlossaryInline(ins.headline)}
                 </span>
                 <span className="text-[9px] uppercase tracking-wide opacity-80">
                   {ins.area}
                 </span>
               </div>
-              <p className="text-[11px] text-gray-200">
-                {parseWithGlossary(ins.body)}
+
+              <p className="text-[11px] leading-relaxed">
+                {parseWithGlossaryInline(ins.body)}
               </p>
             </div>
           ))}
         </div>
 
-        {/* Lern-/Aktion-CTA */}
-        <div className="pt-2 flex flex-wrap items-center justify-between gap-3">
-          <p className="text-[11px] text-gray-400">
-            Diese Zusammenfassung ist für Vorstand, Geschäftsführung, Finanz-,
-            Technik- und Nachhaltigkeitsverantwortliche gedacht.
+        {/* ---------------------------------------------------------
+         * CTA
+         * --------------------------------------------------------- */}
+        <div className="pt-3 flex flex-wrap items-center justify-between gap-4">
+          <p className="text-[11px] text-gray-400 leading-relaxed max-w-md">
+            Diese Insights richten sich an Vorstand, Geschäftsführung,
+            Finanz-, Technik- und Nachhaltigkeitsverantwortliche.
           </p>
+
           <button
-            className="px-4 py-1.5 text-xs rounded-full bg-aems-neon text-black font-semibold hover:bg-aems-soft transition"
-            onClick={() => awardXp("executive_insight_read")}
+            onClick={() => awardXp("executive_insights_open")}
+            className="
+              px-4 py-1.5 text-xs rounded-full
+              bg-aems-neon text-black font-semibold
+              hover:bg-aems-soft transition
+            "
           >
             Insights verstanden markieren
           </button>

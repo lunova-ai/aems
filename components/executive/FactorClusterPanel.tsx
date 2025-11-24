@@ -3,6 +3,8 @@
 import React from "react";
 import AEMSSection from "@/components/AEMSSection";
 import AEMSCard from "@/components/AEMSCard";
+import { parseWithGlossaryInline } from "@/lib/glossary/parser";
+// import { awardXp } from "@/lib/gamification/xp";  // ← optional
 
 export default function FactorClusterPanel() {
   const clusters = [
@@ -21,10 +23,24 @@ export default function FactorClusterPanel() {
   return (
     <AEMSSection title="Clusteranalyse der Einflussfaktoren">
       <div className="grid gap-4">
-        {clusters.map((c, i) => (
-          <AEMSCard key={i} className="p-4">
-            <div className={`font-bold ${c.color}`}>{c.title}</div>
-            <div className="text-sm text-gray-300 mt-1">{c.text}</div>
+        {clusters.map((c) => (
+          <AEMSCard
+            key={c.title}
+            className="
+              p-4 
+              hover:scale-[1.01] 
+              transition-transform 
+              overflow-visible
+            "
+            // onClick={() => awardXp("cluster_view")}   // ← Falls du XP willst
+          >
+            <div className={`font-semibold text-lg ${c.color}`}>
+              {parseWithGlossaryInline(c.title)}
+            </div>
+
+            <div className="text-sm text-gray-300 mt-1 leading-relaxed">
+              {parseWithGlossaryInline(c.text)}
+            </div>
           </AEMSCard>
         ))}
       </div>

@@ -1,105 +1,58 @@
-// components/executive/EnergyTrendPanel.tsx
 "use client";
 
 import React from "react";
 import AEMSSection from "@/components/AEMSSection";
 import AEMSCard from "@/components/AEMSCard";
-import { getEnergyIntensitySeries, TimePoint } from "@/lib/executive/forecast";
-
-type ChartProps = {
-  history: TimePoint[];
-  forecast: TimePoint[];
-};
-
-function MiniLineChart({ history, forecast }: ChartProps) {
-  const all = [...history, ...forecast];
-  const values = all.map((p) => p.value);
-
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-
-  const padding = 10;
-  const width = 260;
-  const height = 120;
-
-  const scaleX = (idx: number) =>
-    padding + (idx / (all.length - 1)) * (width - 2 * padding);
-
-  const scaleY = (val: number) =>
-    height - padding - ((val - min) / (max - min || 1)) * (height - 2 * padding);
-
-  const historyPoints = history
-    .map((p, i) => `${scaleX(i)},${scaleY(p.value)}`)
-    .join(" ");
-
-  const start = history.length - 1;
-
-  const forecastPoints = forecast
-    .map((p, i) => `${scaleX(start + i)},${scaleY(p.value)}`)
-    .join(" ");
-
-  return (
-    <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-32">
-      <line
-        x1={padding}
-        y1={height - padding}
-        x2={width - padding}
-        y2={height - padding}
-        stroke="rgba(255,255,255,0.15)"
-        strokeWidth={1}
-      />
-
-      <polyline
-        points={historyPoints}
-        fill="none"
-        stroke="#00E7B3"
-        strokeWidth={2}
-      />
-
-      <polyline
-        points={forecastPoints}
-        fill="none"
-        stroke="#12C7A5"
-        strokeWidth={2}
-        strokeDasharray="4 3"
-      />
-    </svg>
-  );
-}
+import MiniLineChart from "@/components/executive/MiniLineChart";
+import { getEnergyTrendSeries } from "@/lib/executive/energyTrend";
+import { awardXp } from "@/lib/gamification/xp";
+import { parseWithGlossaryInline } from "@/lib/glossary/parser";
 
 export default function EnergyTrendPanel() {
-  const series = getEnergyIntensitySeries();
+  const series = getEnergyTrendSeries();
 
-  const last = series.history[series.history.length - 1];
-  const forecastLast = series.forecast[series.forecast.length - 1];
+  const last = series.history.at(-1) ?? null;
+  const forecastLast = series.forecast.at(-1) ?? null;
 
   return (
-    <AEMSSection title="Energieintensität – Verlauf & Forecast">
-      <AEMSCard className="p-5">
+    <AEMSSection title="Energieverbrauch – Verlauf & Forecast">
+      <AEMSCard
+        className="p-5 cursor-pointer"
+        onClick={() => awardXp("executive_view")}
+      >
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+          {/* Aktueller Wert */}
           <div>
             <div className="text-xs text-gray-400">Aktueller Wert</div>
             <div className="text-2xl font-bold text-white">
-              {last.value}
-              <span className="text-sm text-gray-400 ml-1">{series.unit}</span>
+              {last?.value ?? "–"} {series.unit}
             </div>
           </div>
 
+          {/* Prognose */}
           <div>
             <div className="text-xs text-gray-400">Prognose (3 Perioden)</div>
             <div className="text-xl font-semibold text-aems-neon">
-              {forecastLast.value} {series.unit}
+              {forecastLast?.value ?? "–"} {series.unit}
             </div>
           </div>
         </div>
 
-        <MiniLineChart history={series.history} forecast={series.forecast} />
+        <MiniLineChart
+          history={series.history}
+          forecast={series.forecast}
+          colorHistory="#38BDF8"
+          colorForecast="#7DD3FC"
+        />
 
         <p className="mt-3 text-xs text-gray-400">
-          Diese Kurve zeigt den Trend der Energieintensität und eine
-          einfache Prognose auf Basis der letzten Messpunkte.
+          {parseWithGlossaryInline(
+            "Zeigt den historischen Energieverbrauch und die erwartete Entwicklung auf Basis aktueller Muster."
+          )}
         </p>
       </AEMSCard>
     </AEMSSection>
   );
 }
+
+

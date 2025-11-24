@@ -1,7 +1,7 @@
 // app/analysis/page.tsx
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 
 import LayoutClient from "@/components/layout/LayoutClient";
 import AEMSHeader from "@/components/AEMSHeader";
@@ -25,23 +25,27 @@ export default function AnalysisPage() {
   // Bereich der exportiert wird
   const analysisRef = useRef<HTMLDivElement>(null);
 
-  // XP beim Öffnen der Seite
+  /* ------------------------------------------
+   * XP: Seite geöffnet
+   * ------------------------------------------ */
   useEffect(() => {
-    awardXp("heatmap_view");
+    awardXp("analysis_view");
   }, []);
 
-  // Snapshot erstellen
-  const handlePageSnapshot = async () => {
+  /* ------------------------------------------
+   * Page Snapshot
+   * ------------------------------------------ */
+  const handlePageSnapshot = useCallback(async () => {
     if (!analysisRef.current) return;
 
     setModalVisible(true);
-    awardXp("pdf_export");
+    awardXp("snapshot_page");
 
     const dataUrl = await exportElementAsPng(analysisRef.current);
     downloadPng("analysis-page.png", dataUrl);
 
     setModalVisible(false);
-  };
+  }, []);
 
   return (
     <LayoutClient>
@@ -80,7 +84,7 @@ export default function AnalysisPage() {
           />
         )}
 
-        {/* MODAL — FIXED: onClose hinzugefügt */}
+        {/* MODAL */}
         <AEMSScreenshotModal
           visible={modalVisible}
           onClose={() => setModalVisible(false)}
@@ -91,19 +95,19 @@ export default function AnalysisPage() {
           <div className="space-y-16">
 
             {/* HEATMAP */}
-            <div onClick={() => awardXp("heatmap_view")}>
+            <section>
               <Heatmap />
-            </div>
+            </section>
 
             {/* KORRELATION */}
-            <div onClick={() => awardXp("correlation_view")}>
+            <section>
               <CorrelationTabs />
-            </div>
+            </section>
 
             {/* ROOT CAUSE */}
-            <div onClick={() => awardXp("rootcause_view")}>
+            <section>
               <RootCauseTabs />
-            </div>
+            </section>
 
           </div>
         </AEMSScreenshotWrapper>

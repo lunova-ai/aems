@@ -2,13 +2,12 @@
 
 import React from "react";
 
-type AEMSCardProps = {
+type AEMSCardProps = React.HTMLAttributes<HTMLDivElement> & {
   children: React.ReactNode;
   className?: string;
   hover?: boolean;        // Hover-Effekt an/aus
   padding?: string;       // z. B. "p-4"
   noBorder?: boolean;     // Border aus
-  onClick?: () => void;   // optional klickbar
 };
 
 export default function AEMSCard({
@@ -17,7 +16,7 @@ export default function AEMSCard({
   hover = true,
   padding = "p-6",
   noBorder = false,
-  onClick
+  ...rest
 }: AEMSCardProps) {
   const base = `
     rounded-2xl
@@ -27,7 +26,7 @@ export default function AEMSCard({
     transition-all
     ${padding}
     ${noBorder ? "" : "border border-white/10"}
-    ${onClick ? "cursor-pointer focus:outline-none focus:ring-2 focus:ring-aems-neon/40" : ""}
+    ${rest.onClick ? "cursor-pointer focus:outline-none focus:ring-2 focus:ring-aems-neon/40" : ""}
   `;
 
   const hoverStyle = hover
@@ -36,7 +35,7 @@ export default function AEMSCard({
 
   return (
     <div
-      onClick={onClick}
+      {...rest}
       className={`${base} ${hoverStyle} ${className}`}
     >
       {children}

@@ -6,12 +6,13 @@ import AEMSCard from "@/components/AEMSCard";
 
 import { parseWithGlossaryInline } from "@/lib/glossary/parser";
 
+// Mock-Daten + Typen sauber getrennt
 import {
   mockKpis,
   mockTrend,
   mockZones,
   mockRecommendations
-} from "@/lib/dashboard/dashboardModel"; // deine erweiterte Datei
+} from "@/lib/mock/dashboardMock";
 
 import {
   LineChart,
@@ -23,8 +24,16 @@ import {
   Area
 } from "recharts";
 
+// Types aus dem Datenmodell – NICHT aus mock!
+import {
+  DashboardKpi,
+  DashboardZone,
+  DashboardRecommendation,
+  DashboardTrend
+} from "@/lib/dashboard/dashboardModel";
+
 // -------------------------------------------------------------
-// Helper für Status-Farben
+// HELPER FÜR STATUSFARBEN
 // -------------------------------------------------------------
 const getStatusColor = (severity?: string) => {
   switch (severity) {
@@ -40,17 +49,19 @@ const getStatusColor = (severity?: string) => {
 };
 
 // -------------------------------------------------------------
-// KPI CARD
+// KPI CARD (STRICT MODE SAFE)
 // -------------------------------------------------------------
-function KpiCard({
-  label,
-  value,
-  unit,
-  severity,
-  description,
-  trend,
-  trendLabel
-}) {
+function KpiCard(kpi: DashboardKpi) {
+  const {
+    label,
+    value,
+    unit,
+    severity,
+    description,
+    trend,
+    trendLabel
+  } = kpi;
+
   return (
     <AEMSCard className="p-4 flex flex-col gap-1">
       <div className="text-sm text-gray-400">{label}</div>
@@ -61,7 +72,7 @@ function KpiCard({
       </div>
 
       <div className={`${getStatusColor(severity)} text-sm font-semibold`}>
-        {trend !== undefined && (
+        {trend !== undefined && trendLabel && (
           <>
             {trend > 0 ? "+" : ""}
             {trend.toFixed(1)} ({trendLabel})
@@ -79,7 +90,9 @@ function KpiCard({
 // -------------------------------------------------------------
 // ZONE CARD
 // -------------------------------------------------------------
-function ZoneCard({ title, status, bullets }) {
+function ZoneCard(zone: DashboardZone) {
+  const { title, status, bullets } = zone;
+
   const color =
     status === "hoch"
       ? "text-red-400"
@@ -108,7 +121,7 @@ function ZoneCard({ title, status, bullets }) {
 // -------------------------------------------------------------
 // RECOMMENDATION CARD
 // -------------------------------------------------------------
-function RecommendationCard({ item }) {
+function RecommendationCard({ item }: { item: DashboardRecommendation }) {
   return (
     <AEMSCard className="p-4 space-y-2">
       <div className="text-white font-semibold">
@@ -138,15 +151,18 @@ function RecommendationCard({ item }) {
 }
 
 // -------------------------------------------------------------
-// CHART UTIL
+// TREND CHART
 // -------------------------------------------------------------
 function TrendChart() {
-  const data = mockTrend.values.map((v, i) => ({
-    x: i,
-    value: v,
-    low: mockTrend.uncertaintyBand[i][0],
-    high: mockTrend.uncertaintyBand[i][1]
-  }));
+  const data = mockTrend.values.map((v, i) => {
+    const band = mockTrend.uncertaintyBand[i];
+    return {
+      x: i,
+      value: v,
+      low: band?.[0] ?? v,
+      high: band?.[1] ?? v
+    };
+  });
 
   return (
     <div className="w-full h-64">
@@ -184,31 +200,36 @@ function TrendChart() {
   );
 }
 
+
 // -------------------------------------------------------------
 // MAIN DASHBOARD
 // -------------------------------------------------------------
 export default function AEMSDashboard() {
   return (
     <AEMSSection title="Executive Dashboard – Antifragiles Energiemanagement">
+      {/* KPIs */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {mockKpis.map((k) => (
-          <KpiCard key={k.key} {...k} />
+        {mockKpis.map(({ key, ...rest }) => (
+        <KpiCard key={key} {...rest} />
         ))}
       </div>
 
+      {/* Trend */}
       <AEMSCard className="mb-8 p-6">
         <div className="text-white font-semibold mb-4">
-          Systemtrend: {mockTrend.label}
+          Systemtrend{mockTrend.label ? `: ${mockTrend.label}` : ""}
         </div>
         <TrendChart />
       </AEMSCard>
 
+      {/* Zones */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         {mockZones.map((z, i) => (
           <ZoneCard key={i} {...z} />
         ))}
       </div>
 
+      {/* Recommendations */}
       <AEMSSection title="Priorisierte Empfehlungen">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {mockRecommendations.map((rec, i) => (

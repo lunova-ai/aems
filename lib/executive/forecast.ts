@@ -30,37 +30,35 @@ function movingAverage(points: TimePoint[], window = 3): number {
 /* ------------------------------------------------------------------
  * FORECASTING ENGINE (simple, heuristisch, stabil)
  * ------------------------------------------------------------------
- * - basiert auf letzten 3 Punkten (MA3)
- * - dynamischer Drift: erkennt Trendlast
- * - verhindert negative Werte
- * - Management-tauglich, kein ML-Modell
+ * TS-SAFE VERSION
  * ------------------------------------------------------------------ */
 function forecastSimple(
   history: TimePoint[],
   steps = 3,
-  drift = 0.02     // Grunddrift pro Schritt
+  drift = 0.02
 ): TimePoint[] {
   if (history.length < 3) return [];
 
-  const ma3 = movingAverage(history, 3);
-  const last = history[history.length - 1];
+  // TS-sicher vorbereitete Referenzen
+  const lastIndex = history.length - 1;
+  const last = history[lastIndex] ?? { label: "", value: 0 };
+  const prev = history[lastIndex - 1] ?? { label: "", value: 0 };
 
-  // Trendbestimmung (leicht)
-  const trend = last.value - history[history.length - 2].value;
-  const trendFactor = trend / (last.value || 1); // Anteil
+  // Trendbestimmung
+  const trend = last.value - prev.value;
+  const trendFactor = trend / (last.value || 1);
 
-  // finaler Drift pro Schritt
-  // POSITIV + NEGATIV möglich, aber moderat
+  // finaler Drift
   const effectiveDrift = drift + trendFactor * 0.5;
 
   const result: TimePoint[] = [];
 
   for (let i = 1; i <= steps; i++) {
-    const value = ma3 * (1 + effectiveDrift * i);
+    const value = movingAverage(history, 3) * (1 + effectiveDrift * i);
 
     result.push({
       label: `+${i}`,
-      value: Math.max(0, Math.round(value * 10) / 10), // niemals negativ
+      value: Math.max(0, Math.round(value * 10) / 10),
     });
   }
 
@@ -86,13 +84,11 @@ export function getEnergyIntensitySeries(): ForecastSeries {
     { label: "M0", value: 124 },
   ];
 
-  const forecast = forecastSimple(history, 3, 0.015);
-
   return {
     name: "Energieintensität",
     unit: "kWh/Einheit",
     history,
-    forecast,
+    forecast: forecastSimple(history, 3, 0.015),
   };
 }
 
@@ -115,18 +111,16 @@ export function getCostPerMWhSeries(): ForecastSeries {
     { label: "M0", value: 136 },
   ];
 
-  const forecast = forecastSimple(history, 3, 0.02);
-
   return {
     name: "Kosten pro MWh",
     unit: "€/MWh",
     history,
-    forecast,
+    forecast: forecastSimple(history, 3, 0.02),
   };
 }
 
 /* ------------------------------------------------------------------
- * RISK INDEX SERIES (0–100)
+ * RISK INDEX SERIES
  * ------------------------------------------------------------------ */
 export function getRiskIndexSeries(): ForecastSeries {
   const history: TimePoint[] = [
@@ -144,12 +138,10 @@ export function getRiskIndexSeries(): ForecastSeries {
     { label: "M0", value: 72 },
   ];
 
-  const forecast = forecastSimple(history, 3, 0.01);
-
   return {
     name: "Risikoindex",
     unit: "/100",
     history,
-    forecast,
+    forecast: forecastSimple(history, 3, 0.01),
   };
 }

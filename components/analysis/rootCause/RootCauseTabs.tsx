@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 
 import AEMSSection from "@/components/AEMSSection";
 import AEMSCard from "@/components/AEMSCard";
@@ -14,11 +14,22 @@ import { awardXp } from "@/lib/gamification/xp";
 export default function RootCauseTabs() {
   const [view, setView] = useState<"hierarchy" | "force">("hierarchy");
 
-  const activate = (mode: "hierarchy" | "force") => {
-    setView(mode);
-    awardXp("rootcause_view");
-    awardXp(mode === "hierarchy" ? "rootcause_hierarchy" : "rootcause_force");
-  };
+  const activate = useCallback(
+    (mode: "hierarchy" | "force") => {
+      setView(mode);
+
+      // Basis-XP
+      awardXp("rootcause_view");
+
+      // Modus-spezifische XP (konsistent mit xp.ts)
+      awardXp(
+        mode === "hierarchy"
+          ? "rootcause_view_hierarchy"
+          : "rootcause_view_force"
+      );
+    },
+    []
+  );
 
   const tabClass = (active: boolean) =>
     `px-4 py-2 rounded-lg text-sm font-medium transition-all 
@@ -37,7 +48,9 @@ export default function RootCauseTabs() {
         <div className="flex gap-4 mb-6" role="tablist">
           <button
             role="tab"
+            id="tab-hierarchy"
             aria-selected={view === "hierarchy"}
+            aria-controls="panel-hierarchy"
             onClick={() => activate("hierarchy")}
             className={tabClass(view === "hierarchy")}
           >
@@ -46,7 +59,9 @@ export default function RootCauseTabs() {
 
           <button
             role="tab"
+            id="tab-force"
             aria-selected={view === "force"}
+            aria-controls="panel-force"
             onClick={() => activate("force")}
             className={tabClass(view === "force")}
           >
@@ -54,9 +69,23 @@ export default function RootCauseTabs() {
           </button>
         </div>
 
-        {/* ---- CONTENT ---- */}
-        <div role="tabpanel">
+        {/* ---- PANELS ---- */}
+
+        <div
+          id="panel-hierarchy"
+          role="tabpanel"
+          aria-labelledby="tab-hierarchy"
+          hidden={view !== "hierarchy"}
+        >
           {view === "hierarchy" && <RootCauseHierarchicalTree />}
+        </div>
+
+        <div
+          id="panel-force"
+          role="tabpanel"
+          aria-labelledby="tab-force"
+          hidden={view !== "force"}
+        >
           {view === "force" && <RootCauseForceTree />}
         </div>
 
@@ -71,5 +100,6 @@ export default function RootCauseTabs() {
     </AEMSSection>
   );
 }
+
 
 

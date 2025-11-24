@@ -4,13 +4,32 @@
  * ACTION KEYS – Vollständige Liste aller XP-Aktionen
  * ------------------------------------------------------- */
 export type ActionKey =
+  // ANALYSIS
   | "heatmap_view"
   | "correlation_view"
+  | "correlation_hover"
+  | "correlation_view_bubble"     
+  | "correlation_view_square"  
   | "rootcause_view"
+  | "rootcause_tabs_open"
+  | "rootcause_view_hierarchy"
+  | "rootcause_view_force"
   | "pdf_export"
   | "insight_view"
   | "simulation_run"
   | "alert_view"
+  | "correlation_cell_click"
+  | "rootcause_node_hover"
+  | "analysis_view"
+  | "rootcause_node_click"
+
+
+  // SNAPSHOTS
+  | "snapshot_heatmap"
+  | "snapshot_correlation"
+  | "snapshot_rootcause"
+  | "snapshot_dashboard"
+  | "snapshot_page"
 
   // CONTROL
   | "control_view"
@@ -30,12 +49,24 @@ export type ActionKey =
   | "forecast_confidence_open"
   | "costforecast_open"
   | "alerts_open"
+  | "executive_resilience_open"
+  | "executive_risk_open"
+  | "executive_risk_timeline_open"
+  | "executive_topfactors_open"
+  | "energytrend_open"
+
 
   // GLOSSARY
   | "glossary_view"
 
   // DASHBOARD
   | "dashboard_view"
+  | "dashboard_recommendation_click" 
+  | "sensitive_zone_open" 
+  | "kpi_open"
+  | "kpi_view"
+  | "trend_view"
+
 
   // SIMULATION
   | "simulation_view"
@@ -43,8 +74,13 @@ export type ActionKey =
   | "scenario_composer_open"
   | "scenario_replay_open"
   | "smartforecast_open"
-  | "simulation_timeline_open";
+  | "simulation_timeline_open"
 
+  | "quick_action_analysis"
+  | "quick_action_executive"
+  | "quick_action_control"
+  | "quick_action_simulation"
+  | "quick_action_glossary";
 
 /* -------------------------------------------------------
  * BADGE IDs
@@ -78,17 +114,42 @@ const CURRENT_VERSION = 1;
 
 
 /* -------------------------------------------------------
- * XP VALUES
+ * XP VALUES (pro Aktion)
  * ------------------------------------------------------- */
 export const XP_PER_ACTION: Record<ActionKey, number> = {
   // ANALYSIS
   heatmap_view: 5,
   correlation_view: 5,
+  correlation_hover: 1,       // ← NEU
   rootcause_view: 10,
+  rootcause_tabs_open: 3,
+  rootcause_view_hierarchy: 5,
+  rootcause_view_force: 5,
+  rootcause_node_click: 3,
   pdf_export: 15,
   insight_view: 10,
   simulation_run: 20,
   alert_view: 10,
+  analysis_view: 5,
+  correlation_view_bubble: 3,
+  correlation_view_square: 3,
+  correlation_cell_click: 1,
+  rootcause_node_hover: 1,
+
+  
+  quick_action_analysis: 5,
+  quick_action_executive: 5,
+  quick_action_control: 5,
+  quick_action_simulation: 5,
+  quick_action_glossary: 3,
+
+
+  // SNAPSHOTS
+  snapshot_heatmap: 8,
+  snapshot_correlation: 8,
+  snapshot_rootcause: 8,
+  snapshot_dashboard: 8,
+  snapshot_page: 10,
 
   // CONTROL
   control_view: 5,
@@ -108,12 +169,24 @@ export const XP_PER_ACTION: Record<ActionKey, number> = {
   forecast_confidence_open: 3,
   costforecast_open: 3,
   alerts_open: 3,
+  executive_resilience_open: 3,
+  executive_risk_open: 3,
+  executive_risk_timeline_open: 3,
+  executive_topfactors_open: 3,
+  energytrend_open: 3,
+
 
   // GLOSSARY
   glossary_view: 3,
 
   // DASHBOARD
   dashboard_view: 3,
+  dashboard_recommendation_click: 5,
+  sensitive_zone_open: 4,
+  kpi_open: 2,
+  kpi_view: 3,
+  trend_view: 5,
+
 
   // SIMULATION
   simulation_view: 5,
@@ -138,13 +211,13 @@ export const BADGE_DEFINITIONS = [
   {
     id: "correlation_reader",
     title: "Correlation Reader",
-    description: "Mehrfach mit Korrelationsanalysen gearbeitet.",
+    description: "Korrelationen wiederholt analysiert.",
     category: "Lernen",
   },
   {
     id: "rootcause_analyst",
     title: "Ursachen-Analyst:in",
-    description: "Ursachenbäume wiederholt untersucht.",
+    description: "Root-Cause-Bereiche mehrfach analysiert.",
     category: "Lernen",
   },
   {
@@ -180,7 +253,7 @@ export const BADGE_DEFINITIONS = [
   {
     id: "antifragile_leader",
     title: "Antifragile Leader",
-    description: "Mehr als 1000 XP gesammelt – echte antifragile Lernreise.",
+    description: "Mehr als 1000 XP gesammelt – antifragile Lernreise.",
     category: "Executive",
   }
 ] as const;
@@ -279,9 +352,26 @@ function checkBadges(next: GamificationState, prev: GamificationState): BadgeId[
     }
   };
 
+  // Heatmap badge
   unlock("heatmap_explorer", A.heatmap_view >= 1 && P.heatmap_view < 1);
-  unlock("correlation_reader", A.correlation_view >= 3 && P.correlation_view < 3);
-  unlock("rootcause_analyst", A.rootcause_view >= 3 && P.rootcause_view < 3);
+
+  // Correlation badge — jetzt korrekt, inkl. Hover
+  unlock(
+    "correlation_reader",
+    (A.correlation_view >= 3 && P.correlation_view < 3) ||
+    (A.correlation_hover >= 20 && P.correlation_hover < 20)   // ← wie besprochen
+  );
+
+  // Rootcause badge — vereint ALLE Rootcause-Actions
+  unlock(
+    "rootcause_analyst",
+    (A.rootcause_view >= 3 && P.rootcause_view < 3) ||
+    (A.rootcause_tabs_open >= 3 && P.rootcause_tabs_open < 3) ||
+    (A.rootcause_view_hierarchy >= 3 && P.rootcause_view_hierarchy < 3) ||
+    (A.rootcause_view_force >= 3 && P.rootcause_view_force < 3) ||
+    (A.snapshot_rootcause >= 3 && P.snapshot_rootcause < 3)
+  );
+
   unlock("pdf_author", A.pdf_export >= 3 && P.pdf_export < 3);
   unlock("insight_reader", A.insight_view >= 10 && P.insight_view < 10);
   unlock("simulation_starter", A.simulation_run >= 1 && P.simulation_run < 1);
@@ -315,13 +405,15 @@ export function awardXp(action: ActionKey) {
 
   saveGamificationState(next);
 
-  if (typeof window !== "undefined") {
+  if (typeof window !== "undefined") {    
     window.dispatchEvent(
       new CustomEvent("aems-gamification-updated", { detail: next })
     );
     if (unlocked.length) {
       window.dispatchEvent(
-        new CustomEvent("aems-gamification-badges-unlocked", { detail: unlocked })
+        new CustomEvent("aems-gamification-badges-unlocked", {
+          detail: unlocked,
+        })
       );
     }
   }
@@ -336,4 +428,5 @@ export function awardXp(action: ActionKey) {
 export function getBadgeDefinition(id: BadgeId) {
   return BADGE_MAP[id];
 }
+
 

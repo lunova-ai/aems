@@ -106,29 +106,34 @@ export default function SquareMatrix() {
             <tr key={i}>
               {/* Zeilen-Beschriftung */}
               <td className="px-3 py-2 text-gray-200 text-sm bg-white/5 whitespace-nowrap">
-                {parseWithGlossaryInline(correlationFactors[i])}
+                {parseWithGlossaryInline(correlationFactors[i] ?? "")}
               </td>
 
               {/* Zellen */}
-              {row.map((value, j) => (
-                <td
-                  key={j}
-                  className={`
-                    ${toColor(value)}
-                    w-16 h-16 
-                    text-xs text-white text-center align-middle 
-                    hover:brightness-125 transition 
-                    cursor-pointer border border-white/5
-                  `}
-                  onMouseMove={(e) =>
-                    showTooltip(e, value, correlationFactors[i], correlationFactors[j])
-                  }
-                  onMouseLeave={hideTooltip}
-                  onClick={() => awardXp("correlation_cell_click")}
-                >
-                  {value.toFixed(2)}
-                </td>
-              ))}
+              {row.map((value, j) => {
+                const safeRow = correlationFactors[i] ?? "";
+                const safeCol = correlationFactors[j] ?? "";
+
+                return (
+                  <td
+                    key={j}
+                    className={`
+                      ${toColor(value)}
+                      w-16 h-16 
+                      text-xs text-white text-center align-middle 
+                      hover:brightness-125 transition 
+                      cursor-pointer border border-white/5
+                    `}
+                    onMouseMove={(e) =>
+                      showTooltip(e, value, safeRow, safeCol)
+                    }
+                    onMouseLeave={hideTooltip}
+                    onClick={() => awardXp("correlation_cell_click")}
+                  >
+                    {value.toFixed(2)}
+                  </td>
+                );
+              })}
             </tr>
           ))}
         </tbody>

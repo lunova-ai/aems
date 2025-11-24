@@ -1,41 +1,46 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import Link from "next/link";
 
 import { rootCauseTree, RootCauseNode } from "@/lib/analysis/rootCause";
 import { parseWithGlossaryInline } from "@/lib/glossary/parser";
 import { awardXp } from "@/lib/gamification/xp";
 
-/** AEMS-Farbskala für Knotendarstellung */
+/* ---------------------------------------------------------
+ * KNOTENFARBEN – visuelle Kodierung nach Einflussstärke
+ * --------------------------------------------------------- */
 function getNodeColor(v: number) {
-  if (v > 0.6) return "#00E7B3";      // starker Einfluss
-  if (v > 0.3) return "#12C7A5";      // mittlerer Einfluss
+  if (v > 0.6) return "#00E7B3";      // stark
+  if (v > 0.3) return "#12C7A5";      // mittel
   return "rgba(255,255,255,0.4)";     // schwach
 }
 
 type NodeItemProps = {
   node: RootCauseNode;
   depth: number;
-  path: string;       // eindeutiger Pfad für Keys
+  path: string;
 };
 
-// ---------------- NODE ITEM ----------------
+/* ---------------------------------------------------------
+ * NODE ITEM – Ein einzelner Knoten im Hierarchie-Baum
+ * --------------------------------------------------------- */
 function NodeItem({ node, depth, path }: NodeItemProps) {
   const [hover, setHover] = useState(false);
   const [expanded, setExpanded] = useState(true);
 
-  const color = getNodeColor(node.value);
   const hasChildren = node.children.length > 0;
+  const color = getNodeColor(node.value);
 
-  const toggleExpand = () => {
+  const toggleExpand = useCallback(() => {
     if (hasChildren) setExpanded((prev) => !prev);
-  };
+  }, [hasChildren]);
 
-  const handleClick = () => {
+  const handleClick = useCallback(() => {
     awardXp("rootcause_node_click");
-  };
+  }, []);
 
+  /* Keyboard Support: ENTER / SPACE toggeln */
   const handleKeyDown: React.KeyboardEventHandler<HTMLDivElement> = (e) => {
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
@@ -45,14 +50,12 @@ function NodeItem({ node, depth, path }: NodeItemProps) {
   };
 
   return (
-    <div className="mb-2">
-
-      {/* --- ROW --- */}
+    <div className="mb-2" role="treeitem" aria-level={depth + 1}>
+      {/* ----- HOVER ROW ----- */}
       <div
         className="
-          flex items-center gap-3 group
-          cursor-pointer px-2 py-1 rounded-lg 
-          transition relative
+          flex items-center gap-3 group cursor-pointer 
+          px-2 py-1 rounded-lg transition relative
           focus:outline-none focus:ring-2 focus:ring-aems-neon/40
         "
         style={{ marginLeft: depth * 20 }}
@@ -65,7 +68,7 @@ function NodeItem({ node, depth, path }: NodeItemProps) {
         aria-label={`${node.name} – ${(node.value * 100).toFixed(0)}% Einfluss`}
       >
 
-        {/* Expand / Collapse Button */}
+        {/* Expand Button */}
         {hasChildren ? (
           <button
             type="button"
@@ -75,10 +78,10 @@ function NodeItem({ node, depth, path }: NodeItemProps) {
             }}
             className="
               w-4 h-4 flex items-center justify-center
-              text-xs text-gray-400 hover:text-aems-neon
-              transition focus:outline-none
+              text-xs text-gray-400 hover:text-aems-neon transition
+              focus:outline-none
             "
-            aria-label={expanded ? "Zweig einklappen" : "Zweig ausklappen"}
+            aria-label={expanded ? "Einklappen" : "Ausklappen"}
           >
             {expanded ? "▾" : "▸"}
           </button>
@@ -104,12 +107,10 @@ function NodeItem({ node, depth, path }: NodeItemProps) {
         {hover && (
           <div
             className="
-              absolute left-6 top-7 z-40 
-              w-72 p-3 rounded-xl 
-              bg-black/80 backdrop-blur-md 
+              absolute left-6 top-7 z-40 w-72 p-3
+              rounded-xl bg-black/80 backdrop-blur-md 
               border border-aems-neon/30 
-              text-gray-200 text-sm shadow-xl 
-              animate-fadeIn
+              text-gray-200 text-sm shadow-xl animate-fadeIn
             "
           >
             <div className="text-aems-neon font-semibold mb-1">
@@ -137,7 +138,7 @@ function NodeItem({ node, depth, path }: NodeItemProps) {
         )}
       </div>
 
-      {/* --- CHILDERN LIST --- */}
+      {/* ----- CHILDREN ----- */}
       {hasChildren && expanded && (
         <div>
           {node.children.map((child, index) => (
@@ -154,16 +155,15 @@ function NodeItem({ node, depth, path }: NodeItemProps) {
   );
 }
 
-// ---------------- ROOT COMPONENT ----------------
+/* ---------------------------------------------------------
+ * ROOT COMPONENT
+ * --------------------------------------------------------- */
 export default function RootCauseHierarchicalTree() {
   return (
-    <div className="py-4">
-      <NodeItem
-        node={rootCauseTree}
-        depth={0}
-        path={rootCauseTree.name}
-      />
+    <div className="py-4" role="tree">
+      <NodeItem node={rootCauseTree} depth={0} path={rootCauseTree.name} />
     </div>
   );
 }
+
 

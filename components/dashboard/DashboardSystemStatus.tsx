@@ -2,17 +2,18 @@
 
 import React from "react";
 
-import { mockKpis, DashboardKpi } from "@/lib/mock/dashboardMock";
+import { mockKpis } from "@/lib/mock/dashboardMock";
+import { DashboardKpi } from "@/lib/dashboard/dashboardModel";
 
 import AEMSSection from "@/components/AEMSSection";
 import AEMSCard from "@/components/AEMSCard";
 import AEMSKPI from "@/components/AEMSKPI";
 
 import { awardXp } from "@/lib/gamification/xp";
-import { parseWithGlossary } from "@/lib/glossary/parser";
+import { parseWithGlossaryInline } from "@/lib/glossary/parser";
 
 export default function DashboardSystemStatus({
-  kpis = mockKpis
+  kpis = mockKpis,
 }: {
   kpis?: DashboardKpi[];
 }) {
@@ -28,26 +29,27 @@ export default function DashboardSystemStatus({
           <AEMSCard
             key={kpi.key}
             className="
-              relative
-              overflow-visible      /* Tooltip Fix */
-              hover:scale-[1.01] 
-              transition-transform
+              relative overflow-visible
+              hover:scale-[1.01] transition-transform
             "
           >
             <div
               className="flex flex-col gap-3 cursor-pointer"
-              onClick={() => awardXp(`kpi_view_${kpi.key}_${index}`)}
-            >
+              onClick={() => {
+              awardXp("kpi_view");  // XP-Event
+              console.log("KPI clicked:", kpi.key, index);  // optional für Analyse
+             }}
+          >
               {/* KPI Visual + Wert */}
               <AEMSKPI
-                label={parseWithGlossary(kpi.label)}
+                label={parseWithGlossaryInline(kpi.label)}
                 value={kpi.value}
                 status={kpi.status}
               />
 
               {/* Beschreibung mit Glossar */}
               <p className="text-sm text-gray-300 leading-relaxed">
-                {parseWithGlossary(kpi.description)}
+                {parseWithGlossaryInline(kpi.description)}
               </p>
             </div>
           </AEMSCard>

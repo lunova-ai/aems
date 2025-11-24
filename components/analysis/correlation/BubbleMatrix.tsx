@@ -28,7 +28,7 @@ export default function BubbleMatrix() {
     col: ""
   });
 
-  /** Tooltip anzeigen – throttled update */
+  /** Tooltip anzeigen */
   const showTooltip = useCallback(
     (e: React.MouseEvent, value: number, row: string, col: string) => {
       awardXp("correlation_hover");
@@ -104,7 +104,7 @@ export default function BubbleMatrix() {
           {correlationMatrix.map((row, i) => (
             <tr key={i}>
               <td className="text-gray-200 text-sm px-3 py-2 bg-white/5 whitespace-nowrap">
-                {parseWithGlossaryInline(correlationFactors[i])}
+                {parseWithGlossaryInline(correlationFactors[i] ?? "")}
               </td>
 
               {row.map((value, j) => {
@@ -124,8 +124,8 @@ export default function BubbleMatrix() {
                       showTooltip(
                         e,
                         value,
-                        correlationFactors[i],
-                        correlationFactors[j]
+                        correlationFactors[i] ?? "",
+                        correlationFactors[j] ?? ""
                       )
                     }
                     onMouseLeave={hideTooltip}

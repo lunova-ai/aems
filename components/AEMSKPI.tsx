@@ -2,29 +2,31 @@
 
 import React, { useState } from "react";
 
-export default function AEMSKPI({
-  label,
-  value,
-  status,
-  trend,          // optional: "up" | "down" | "stable"
-  info,           // optional: Tooltip-Text
-}: {
-  label: string;
+type AEMSKPIProps = {
+  label: React.ReactNode;       // Glossar-kompatibel
   value: number;
   status?: string;
   trend?: "up" | "down" | "stable";
   info?: string;
-}) {
+};
+
+export default function AEMSKPI({
+  label,
+  value,
+  status,
+  trend,
+  info,
+}: AEMSKPIProps) {
   const [hover, setHover] = useState(false);
 
-  // Farbskala für Werte
+  // Farbskala für KPI-Wert
   const getColor = (v: number) => {
-    if (v >= 70) return "text-aems-neon";        // gut
-    if (v >= 40) return "text-yellow-400";        // mittel
-    return "text-red-400";                        // kritisch
+    if (v >= 70) return "text-aems-neon";
+    if (v >= 40) return "text-yellow-400";
+    return "text-red-400";
   };
 
-  const trendIcons: Record<string, string> = {
+  const trendIcons: Record<NonNullable<AEMSKPIProps["trend"]>, string> = {
     up: "▲",
     down: "▼",
     stable: "●",
@@ -35,18 +37,16 @@ export default function AEMSKPI({
       className="flex flex-col gap-2 relative cursor-default"
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
+      role="group"
     >
-      {/* Label */}
+      {/* Label (Glossar-fähig) */}
       <span className="text-sm text-gray-300">{label}</span>
 
-      {/* Wert & Trend */}
+      {/* Wert + Trend */}
       <span className={`text-4xl font-bold ${getColor(value)}`}>
         {value}%
         {trend && (
-          <span
-            className="ml-2 text-sm opacity-80"
-            aria-label="Trendindikator"
-          >
+          <span className="ml-2 text-sm opacity-80" aria-label="Trendindikator">
             {trendIcons[trend]}
           </span>
         )}
@@ -63,7 +63,7 @@ export default function AEMSKPI({
       {hover && info && (
         <div
           className="
-            absolute left-0 top-12 z-40 
+            absolute left-0 top-full mt-2 z-40
             px-3 py-2 w-56
             rounded-xl bg-black/80 backdrop-blur-md 
             border border-aems-neon/30 shadow-xl 

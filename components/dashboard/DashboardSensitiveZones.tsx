@@ -6,9 +6,8 @@ import Link from "next/link";
 import AEMSCard from "@/components/AEMSCard";
 import AEMSSection from "@/components/AEMSSection";
 
-import { parseWithGlossaryInline, parseWithGlossary } from "@/lib/glossary/parser";
+import { parseWithGlossaryInline } from "@/lib/glossary/parser";
 import { awardXp } from "@/lib/gamification/xp";
-
 import { generateSensitiveZones } from "@/lib/sensitive/generator";
 
 export default function DashboardSensitiveZones() {
@@ -21,16 +20,16 @@ export default function DashboardSensitiveZones() {
     co2: 0.22,
   });
 
-  // Farben für Risikostufen
-  const colors = {
+  // Farben für Risikostufen – strict-safe
+  const colors: Record<string, string> = {
     Niedrig: "bg-green-700/40 border-green-500/30",
     Mittel: "bg-yellow-700/40 border-yellow-500/30",
     Hoch: "bg-orange-700/40 border-orange-500/40",
     Kritisch: "bg-red-700/40 border-red-500/40",
   };
 
-  // Sicherer Glossar-Wrapper
-  const G = (t: string) => parseWithGlossaryInline(t) ?? parseWithGlossary(t);
+  // Glossar-Wrapper
+  const G = parseWithGlossaryInline;
 
   return (
     <AEMSSection title="Sensitive Zonen">
@@ -38,17 +37,16 @@ export default function DashboardSensitiveZones() {
 
         {zones.map((zone, i) => (
           <AEMSCard
-            key={i}
+            key={zone.category}
             className={`
-              relative border 
-              ${colors[zone.level]} 
+              relative border rounded-xl
+              ${colors[zone.level] ?? "bg-white/5 border-white/20"}
               hover:scale-[1.01] transition
-              overflow-visible  /* Tooltip Fix */
+              overflow-visible
             `}
           >
-
             {/* Titel */}
-            <h3 className="text-lg font-semibold text-white">
+            <h3 className="text-lg font-semibold text-white mb-2">
               {G(zone.category)}
             </h3>
 
@@ -69,10 +67,10 @@ export default function DashboardSensitiveZones() {
               {G(zone.explanation)}
             </p>
 
-            {/* BUTTON MIT NAVIGATION */}
+            {/* Details-Button */}
             <Link
               href={`/analysis?zone=${encodeURIComponent(zone.category)}`}
-              onClick={() => awardXp("zone_" + i)}
+              onClick={() => awardXp("sensitive_zone_open")}
               className="
                 mt-6 block text-center
                 bg-aems-neon text-black

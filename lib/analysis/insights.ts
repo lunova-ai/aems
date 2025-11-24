@@ -50,6 +50,7 @@ function getTopMatrixPairs(
 
 /**
  * Root-Cause-Tree in ein flaches Array umwandeln.
+ * Wichtig: parent darf nicht `undefined` sein bei exactOptionalPropertyTypes.
  */
 function flattenRootCause(
   node: RootCauseNode,
@@ -58,13 +59,17 @@ function flattenRootCause(
 ): { name: string; value: number; depth: number; parent?: string }[] {
   if (!node) return [];
 
-  const current = [{ name: node.name, value: node.value, depth, parent }];
+  const currentNode =
+    parent !== undefined
+      ? { name: node.name, value: node.value, depth, parent }
+      : { name: node.name, value: node.value, depth };
 
-  const children = node.children
-    ?.flatMap((c) => flattenRootCause(c, depth + 1, node.name))
-    ?? [];
+  const children =
+    node.children?.flatMap((c) =>
+      flattenRootCause(c, depth + 1, node.name)
+    ) ?? [];
 
-  return [...current, ...children];
+  return [currentNode, ...children];
 }
 
 /* -------------------------------------------------------
@@ -83,7 +88,8 @@ export function buildExecutiveSummary(): string[] {
     .slice(0, 2);
 
   if (topCorr.length > 0) {
-    const first = topCorr[0];
+    const first = topCorr[0]!;
+
     summary.push(
       `Zwischen ${first.a} und ${first.b} besteht eine starke ${
         first.value > 0 ? "positive" : "negative"

@@ -140,7 +140,7 @@ export function generateExecutiveInsights(
   }
 
   /* ---------------------------------------------------------
-   * 5) Meta-Summary (automatisch generiert)
+   * 5) Meta-Summary
    * --------------------------------------------------------- */
   const summary =
     `Das Energiesystem zeigt derzeit ein ${levelLabel(m.stressIndex)}es Stressniveau ` +
@@ -149,18 +149,44 @@ export function generateExecutiveInsights(
     `Die Effizienz ist ${levelLabel(m.efficiency)}, während die CO₂-Intensität ` +
     `${levelLabel(m.co2Intensity)} ausfällt.`;
 
-
   /* ---------------------------------------------------------
-   * Top-Priorität ermitteln – stärkste Severity gewinnt
+   * 6) Top-Priorität — garantiert niemals undefined
    * --------------------------------------------------------- */
   const severityOrder = ["Kritisch", "Warnung", "Hinweis", "Info"] as const;
 
-  const topPriority =
-    insights.sort(
+  let topPriority: ExecutiveInsight;
+
+  if (insights.length > 0) {
+    const sorted = [...insights].sort(
       (a, b) =>
         severityOrder.indexOf(a.severity) -
         severityOrder.indexOf(b.severity)
-    )[0] || insights[0];
+    );
+
+    const first = sorted.at(0);
+
+    // TS-safe narrowing
+    if (first) {
+      topPriority = first;
+    } else {
+      // theoretisch unmöglich, aber TS-sicher
+      topPriority = {
+        headline: "Keine kritischen Hinweise",
+        body:
+          "Aktuell wurden keine kritischen oder warnenden Systemzustände erkannt. Die Lage ist stabil.",
+        severity: "Info",
+        area: "Resilienz",
+      };
+    }
+  } else {
+    topPriority = {
+      headline: "Keine kritischen Hinweise",
+      body:
+        "Aktuell wurden keine kritischen oder warnenden Systemzustände erkannt. Die Lage ist stabil.",
+      severity: "Info",
+      area: "Resilienz",
+    };
+  }
 
   return {
     summary,
@@ -168,4 +194,6 @@ export function generateExecutiveInsights(
     topPriority,
   };
 }
+
+
 

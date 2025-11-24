@@ -1,11 +1,12 @@
 // app/executive/page.tsx
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useCallback } from "react";
 
 import LayoutClient from "@/components/layout/LayoutClient";
 import AEMSHeader from "@/components/AEMSHeader";
 
+// Panels
 import ExecutiveKPIPanel from "@/components/executive/ExecutiveKPIPanel";
 import ResiliencePanel from "@/components/executive/ResiliencePanel";
 import CostForecastPanel from "@/components/executive/CostForecastPanel";
@@ -17,68 +18,71 @@ import ExecutiveInsightsPanel from "@/components/executive/ExecutiveInsightsPane
 
 import { parseWithGlossaryInline } from "@/lib/glossary/parser";
 import { awardXp } from "@/lib/gamification/xp";
+import type { ActionKey } from "@/lib/gamification/xp";
 
 export default function ExecutivePage() {
-  // XP vergeben beim Betreten der Seite
+  /* ----------------------------------------
+   * XP beim Öffnen der Seite
+   * -------------------------------------- */
   useEffect(() => {
     awardXp("executive_view");
   }, []);
 
+  /* ----------------------------------------
+   * Saubere, typisierte XP-Wrapper
+   * -------------------------------------- */
+  const giveXp = useCallback((key: ActionKey) => () => awardXp(key), []);
+
   return (
     <LayoutClient>
       <main className="pt-10 pb-20 space-y-16">
-
-        {/* ==== HEADER ==== */}
+        {/* HEADER */}
         <AEMSHeader
           title="Executive Cockpit"
           subtitle={parseWithGlossaryInline(
-            "Kosten, Risiko, Resilienz und CO₂ im Überblick – auf einen Blick entscheidungsfähig."
+            "Kosten, Risiko, Resilienz und CO₂ im Überblick – schnelle Orientierung für Entscheidungen."
           )}
         />
 
-        {/* ==== EXECUTIVE INSIGHTS ==== */}
-        <div onClick={() => awardXp("executive_insights_open")}>
+        {/* EXECUTIVE INSIGHTS */}
+        <div onClick={giveXp("executive_insights_open")}>
           <ExecutiveInsightsPanel />
         </div>
 
-        {/* ==== KPI ROW ==== */}
-        <div onClick={() => awardXp("executive_kpi_open")}>
+        {/* KPI PANEL */}
+        <div onClick={giveXp("executive_kpi_open")}>
           <ExecutiveKPIPanel />
         </div>
 
-        {/* ==== RESILIENCE / VOLATILITY / IMPACT / FORECAST ==== */}
+        {/* RESILIENCE / VOLATILITY / IMPACT / FORECAST */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          <div onClick={() => awardXp("resilience_open")}>
+          <div onClick={giveXp("resilience_open")}>
             <ResiliencePanel />
           </div>
 
-          <div onClick={() => awardXp("volatility_open")}>
+          <div onClick={giveXp("volatility_open")}>
             <VolatilityPanel />
           </div>
 
-          <div onClick={() => awardXp("impactscore_open")}>
+          <div onClick={giveXp("impactscore_open")}>
             <ImpactScorePanel />
           </div>
 
-          <div onClick={() => awardXp("forecast_confidence_open")}>
+          <div onClick={giveXp("forecast_confidence_open")}>
             <ForecastConfidencePanel />
           </div>
         </div>
 
-        {/* ==== COST FORECAST + ALERTS ==== */}
+        {/* COST-FORECAST + ALERTS */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div
-            className="lg:col-span-2"
-            onClick={() => awardXp("costforecast_open")}
-          >
+          <div className="lg:col-span-2" onClick={giveXp("costforecast_open")}>
             <CostForecastPanel />
           </div>
 
-          <div onClick={() => awardXp("alerts_open")}>
+          <div onClick={giveXp("alerts_open")}>
             <AlertsPanel />
           </div>
         </div>
-
       </main>
     </LayoutClient>
   );
